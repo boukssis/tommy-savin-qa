@@ -3,6 +3,7 @@
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useId, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { createPortal } from "react-dom";
 import { Logo } from "@/components/Logo";
 import { nav } from "@/lib/site";
 
@@ -13,6 +14,11 @@ export function Header() {
   const panelRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const openedOnce = useRef(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -55,7 +61,7 @@ export function Header() {
   }
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-navy/95 text-white backdrop-blur-md">
+    <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-[#041A2D] text-white">
       <div className="mx-auto flex h-[4.5rem] w-full max-w-[1400px] items-center justify-between gap-6 px-5 md:px-8">
         <Link href="/#home" className="shrink-0">
           <Logo priority />
@@ -87,45 +93,49 @@ export function Header() {
         </button>
       </div>
       <div className="h-px bg-gold/80" aria-hidden="true" />
-      {open ? (
-        <div
-          id={panelId}
-          ref={panelRef}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Primary"
-          className="fixed inset-0 z-50 bg-navy-deep xl:hidden"
-          onKeyDown={trapFocus}
-        >
-          <div className="flex h-[4.5rem] items-center justify-between px-5">
-            <Logo />
-            <button
-              ref={closeRef}
-              type="button"
-              className="inline-flex size-11 items-center justify-center border border-white/20"
-              onClick={() => setOpen(false)}
+      {open && mounted
+        ? createPortal(
+            <div
+              id={panelId}
+              ref={panelRef}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Primary"
+              className="fixed inset-0 z-[80] xl:hidden"
+              style={{ backgroundColor: "#041A2D" }}
+              onKeyDown={trapFocus}
             >
-              <X aria-hidden="true" />
-              <span className="sr-only">Close menu</span>
-            </button>
-          </div>
-          <nav className="flex flex-col px-6 pt-4" aria-label="Mobile">
-            {nav.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="border-b border-white/10 py-4 text-2xl font-semibold text-white"
-                onClick={() => setOpen(false)}
-              >
-                {item.label}
-              </Link>
-            ))}
-            <Link href="/#contact" className="btn btn-gold mt-8" onClick={() => setOpen(false)}>
-              Discuss Your Project
-            </Link>
-          </nav>
-        </div>
-      ) : null}
+              <div className="flex h-[4.5rem] items-center justify-between border-b border-white/10 bg-[#041A2D] px-5">
+                <Logo />
+                <button
+                  ref={closeRef}
+                  type="button"
+                  className="inline-flex size-11 items-center justify-center border border-white/20 bg-[#041A2D]"
+                  onClick={() => setOpen(false)}
+                >
+                  <X aria-hidden="true" />
+                  <span className="sr-only">Close menu</span>
+                </button>
+              </div>
+              <nav className="flex flex-col bg-[#041A2D] px-6 pt-4" aria-label="Mobile">
+                {nav.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="border-b border-white/10 py-4 text-2xl font-semibold text-white"
+                    onClick={() => setOpen(false)}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+                <Link href="/#contact" className="btn btn-gold mt-8" onClick={() => setOpen(false)}>
+                  Discuss Your Project
+                </Link>
+              </nav>
+            </div>,
+            document.body,
+          )
+        : null}
     </header>
   );
 }
